@@ -21,7 +21,7 @@ def clear_kb():
 
 def insert_translation_data():
     current_dir = os.getcwd() 
-    xlsx_path = current_dir + "/src/retrieval/data/translation_data.xlsx"
+    xlsx_path = current_dir + "/src/retrieval/data/translation_data_end.xlsx"
     datas = excel_parser(xlsx_path)
     for data in datas:
         id = question_kb.insert_one({'zh_text': data['Chinese'], 'en_text': data['English']})
@@ -30,7 +30,8 @@ def insert_veckb():
     question_veckb.insert_bulk(from_kb=question_kb)
 
 if __name__ == '__main__':
-    # clear_kb()
+    clear_kb()
     create_kb()
     insert_translation_data()
     insert_veckb()
+    print(len(question_veckb), len(question_kb))

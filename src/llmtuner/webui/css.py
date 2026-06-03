@@ -195,25 +195,12 @@ CSS = r"""
   position: fixed !important;
   top: 50%;
   left: 50%;
-<<<<<<< Updated upstream
-  transform: translate(-50%, -50%); /* center horizontally */
-=======
   transform: translate(-50%, -50%);
->>>>>>> Stashed changes
   max-width: 1000px;
   max-height: 750px;
   overflow-y: auto;
   background-color: var(--input-background-fill);
   flex-wrap: nowrap !important;
-<<<<<<< Updated upstream
-  border: 2px solid black !important;
-  z-index: 1000;
-  padding: 10px;
-}
-
-.dark .modal-box {
-  border: 2px solid white !important;
-=======
   border: 2px solid var(--pht-border) !important;
   border-radius: 16px !important;
   z-index: 1000;
@@ -223,6 +210,5 @@ CSS = r"""
 
 .dark .modal-box {
   border-color: #475569 !important;
->>>>>>> Stashed changes
 }
 """

@@ -46,3 +46,7 @@ log.txt
 cache
 model
 nohup.out
+translation_output/
+src/retrieval/data/
+data/WMT-Chinese-to-English-Machine-Translation-Medical
+data/WMT-English-to-Chinese-Machine-Translation-Medical/

@@ -76,7 +76,7 @@ PhT-LM = 检索模块 + 大模型模块
   1. web_demo界面（直接使用）
 
   ```bibtex
-  python src/web_demo.py --model_name_or_path /home/houfengzhen/chentao/code/translation/LLaMA-Factory/model/translation_5000
+  python src/web_demo.py --model_name_or_path 模型地址
   ```
   2. 简单调用（代码调用）
 

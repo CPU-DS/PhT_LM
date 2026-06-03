@@ -1,12 +1,14 @@
 import json
 import pandas as pd
 from .pair_data import PairData
+from .retrieval.retrieval.documents_embedding import DocumentsEmbedding
 
 
-async def format_prompt(text, is_zh, topk, fusion_weight, is_es):
-    f = PairData(text, is_zh=is_zh, is_es=is_es)
+async def format_prompt(text, is_zh, topk, fusion_weight, is_es, documentsEmbedding=None):
+    if not documentsEmbedding:
+        documentsEmbedding = DocumentsEmbedding()
+    f = PairData(text, documentsEmbedding=documentsEmbedding, is_zh=is_zh, is_es=is_es)
     results = f.get_weight_fusion_resp(text, topk, fusion_weight)
-
     if not results:
         # result为空时：
         if is_zh:
@@ -32,4 +34,3 @@ async def format_prompt(text, is_zh, topk, fusion_weight, is_es):
         prompt = prompt.replace("{context}", context).replace("{sentence}", text)
     # print(prompt)
     return prompt
-

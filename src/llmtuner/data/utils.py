@@ -5,8 +5,6 @@ from typing import Tuple
 class Role(str, Enum):
     USER = "user"
     ASSISTANT = "assistant"
-    OBSERVATION = "observation"
-    FUNCTION = "function"
 
 
 def infer_max_len(source_len: int, target_len: int, max_len: int, reserved_label_len: int) -> Tuple[int, int]:

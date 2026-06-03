@@ -25,15 +25,7 @@ from nltk.translate.chrf_score import sentence_chrf
 smooth = SmoothingFunction()
 
 files = [
-<<<<<<< HEAD
     "data/results_test_en_2_zh_without_context.json", "data/results_test_zh_2_en_without_context.json"
-=======
-    # "results_test_en_2_zh_without_context.json", "results_test_zh_2_en_without_context.json"
-    "data/ICH_file_en_2_zh.json", "data/ICH_file_zh_2_en.json"
-    # "results_test_en_2_zh_without_context——new.json", "results_test_zh_2_en_without_context——new.json"
-    #  "data/WMT-Chinese-to-English-Machine-Translation-Medical/damo_mt_testsets_zh2en_medical_wmt19.csv",
-    #  "data/WMT-English-to-Chinese-Machine-Translation-Medical/damo_mt_wmt19_medical_en2zh.csv",
->>>>>>> 4fb4b75 (保存测试集)
     ]
 
 

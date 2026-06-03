@@ -10,47 +10,32 @@ def timer(func):
         return res
     return wrapper
 
-def replace_quote(value):
-    value = str(value)
-    pattern = re.compile(r'"(.*?)"')
-    result = pattern.findall(value)
-    for l in result:
-        value = value.replace('"{}"'.format(l), '“{}”'.format(l))
-    return value
-
 def excel_parser(file):
     df = pd.read_excel(file, sheet_name=None)
-    docs = []
+    pair_datas = []
     for sheet in df.keys():
         df_sheet = df[sheet].fillna('')
-        # for col in df_sheet.columns:
-        #     df_sheet[col] = df_sheet[col].apply(replace_quote)
-        docs += df_sheet.to_dict(orient='records')
-    return docs
+        pair_datas += df_sheet.to_dict(orient='records')
+    return pair_datas
 
-def result_transfer(result) -> dict:
-    source_docs = []
+def result_2_text(result):
+    source_datas = []
     for hit in result['hits']['hits']:
         id = hit['_id']
         score = hit['_score']
         source = hit['_source']
-        # for field in source.keys():
-            # source[field] = str(source[field]).replace('"', '&&temp&&').replace('\\', '@@temp@@')
-        source_docs.append({"_id":id,"_score":score,"_source":source})
-    # resp = {"total":result['hits']['total']['value'],"source_docs":source_docs}
-    resp = {"total": 100, "source_docs": source_docs}
+        source_datas.append({"_id":id,"_score":score,"_source":source})
+    resp = {"total": 100, "source_datas": source_datas}
     return resp
 
-def vec_result_transfer(result,from_kb):
-    source_docs = []
+def vec_2_text(result,from_kb):
+    source_datas = []
     for hit in result['hits']['hits']:
         id = hit['_id']
         score = hit['_score']
         source =  from_kb.query_by_id(id)['_source']
-        # for field in source.keys():
-        #     source[field] = str(source[field]).replace('"', '&&temp&&').replace('\\', '@@temp@@')
-        source_docs.append({"_id":id,"_score":score,"_source":source})
-    resp = {"total": 100, "source_docs": source_docs}
+        source_datas.append({"_id":id,"_score":score,"_source":source})
+    resp = {"total": 100, "source_datas": source_datas}
     return resp
 
 

@@ -56,10 +56,10 @@ for file in files:
         total_4 += score_4
 
     print(file + '---------------------------------------------------------------------------------------')
-    # print("总chrf：", total)
+    print("总chrf：", total)
     print("平均chrf：", 100 * total / len(datas))
-    # print("总bleu分数：", total_1, total_2, total_3, total_4)
-    # print("测试集个数：", len(datas))
+    print("总bleu分数：", total_1, total_2, total_3, total_4)
+    print("测试集个数：", len(datas))
     print("平均bleu分数：", 100 * total_1 / len(datas), 100 * total_2 / len(datas), 100 * total_3 / len(datas), 100 * total_4 / len(datas))
     print('---------------------------------------------------------------------------------------')
 

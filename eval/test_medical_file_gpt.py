@@ -6,7 +6,6 @@ from nltk.translate.bleu_score import SmoothingFunction
 from nltk.translate.bleu_score import sentence_bleu
 from nltk.translate.chrf_score import sentence_chrf
 
-# sk-mgJ1aFGM84tjWEXv4OXZDNfbb1blofZ5qaoxX7z5ipgXLIIF
 smooth = SmoothingFunction()
 openai.api_base = "https://api.chatanywhere.tech"
 openai.api_key = "sk-xxx"

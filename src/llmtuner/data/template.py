@@ -2,13 +2,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union
 
 from ..extras.logging import get_logger
-from .formatter import EmptyFormatter, FunctionFormatter, StringFormatter, ToolFormatter
+from .formatter import EmptyFormatter, FunctionFormatter, StringFormatter
 from .utils import Role, infer_max_len
 
 
 if TYPE_CHECKING:
     from transformers import PreTrainedTokenizer
-
     from .formatter import Formatter
 
 
@@ -22,7 +21,6 @@ class Template:
     format_system: "Formatter"
     format_function: "Formatter"
     format_observation: "Formatter"
-    format_tools: "Formatter"
     format_separator: "Formatter"
     default_system: str
     stop_words: List[str]
@@ -34,15 +32,13 @@ class Template:
         self,
         tokenizer: "PreTrainedTokenizer",
         messages: List[Dict[str, str]],
-        system: Optional[str] = None,
-        tools: Optional[str] = None,
         cutoff_len: Optional[int] = 1_000_000,
         reserved_label_len: Optional[int] = 16,
     ) -> Tuple[List[int], List[int]]:
         r"""
         Returns a single pair of token ids representing prompt and response respectively.
         """
-        encoded_pairs = self._encode(tokenizer, messages, system, tools, cutoff_len, reserved_label_len)
+        encoded_pairs = self._encode(tokenizer, messages, cutoff_len, reserved_label_len)
         prompt_ids = []
         for query_ids, resp_ids in encoded_pairs[:-1]:
             prompt_ids += query_ids + resp_ids
@@ -50,41 +46,19 @@ class Template:
         answer_ids = encoded_pairs[-1][1]
         return prompt_ids, answer_ids
 
-    def encode_multiturn(
-        self,
-        tokenizer: "PreTrainedTokenizer",
-        messages: List[Dict[str, str]],
-        system: Optional[str] = None,
-        tools: Optional[str] = None,
-        cutoff_len: Optional[int] = 1_000_000,
-        reserved_label_len: Optional[int] = 16,
-    ) -> Sequence[Tuple[List[int], List[int]]]:
-        r"""
-        Returns multiple pairs of token ids representing prompts and responses respectively.
-        """
-        return self._encode(tokenizer, messages, system, tools, cutoff_len, reserved_label_len)
-
     def _encode(
         self,
         tokenizer: "PreTrainedTokenizer",
         messages: List[Dict[str, str]],
-        system: str,
-        tools: str,
         cutoff_len: int,
         reserved_label_len: int,
-    ) -> Sequence[Tuple[List[int], List[int]]]:
-        r"""
-        Encodes formatted inputs to pairs of token ids.
-        Turn 0: system + query        resp
-        Turn t: sep + query           resp
-        """
-        system = system or self.default_system
+    ):
+        system = self.default_system
         encoded_messages = []
         for i, message in enumerate(messages):
             elements = []
-            if i == 0 and (system or tools or self.force_system):
-                tool_text = self.format_tools.apply(content=tools)[0] if tools else ""
-                elements += self.format_system.apply(content=(system + tool_text))
+            if i == 0 and (system or self.force_system):
+                elements += self.format_system.apply(content=(system))
             elif i > 0 and i % 2 == 0:
                 elements += self.format_separator.apply()
 
@@ -92,10 +66,6 @@ class Template:
                 elements += self.format_user.apply(content=message["content"], idx=str(i // 2))
             elif message["role"] == Role.ASSISTANT:
                 elements += self.format_assistant.apply(content=message["content"])
-            elif message["role"] == Role.OBSERVATION:
-                elements += self.format_observation.apply(content=message["content"])
-            elif message["role"] == Role.FUNCTION:
-                elements += self.format_function.apply(content=message["content"])
             else:
                 raise NotImplementedError
 
@@ -105,10 +75,7 @@ class Template:
 
     def _convert_elements_to_ids(
         self, tokenizer: "PreTrainedTokenizer", elements: List[Union[str, Dict[str, str]]]
-    ) -> List[int]:
-        r"""
-        Converts elements to token ids.
-        """
+    ):
         token_ids = []
         for elem in elements:
             if isinstance(elem, str):
@@ -122,7 +89,7 @@ class Template:
                 elif "eos_token" in elem and tokenizer.eos_token_id:
                     token_ids += [tokenizer.eos_token_id]
             else:
-                raise ValueError("Input must be string, set[str] or dict[str, str], got {}".format(type(elem)))
+                raise ValueError("输入必须是 string, set[str] or dict[str, str], got {}".format(type(elem)))
 
         return token_ids
 
@@ -161,7 +128,6 @@ def register_template(
     format_system: Optional["Formatter"] = None,
     format_function: Optional["Formatter"] = None,
     format_observation: Optional["Formatter"] = None,
-    format_tools: Optional["Formatter"] = None,
     format_separator: Optional["Formatter"] = None,
     default_system: Optional[str] = "",
     stop_words: Optional[List[str]] = [],
@@ -174,7 +140,6 @@ def register_template(
     default_user_formatter = StringFormatter(slots=["{{content}}"])
     default_assistant_formatter = StringFormatter(slots=["{{content}}"] + eos_slots)
     default_function_formatter = FunctionFormatter(slots=["Action: {{name}}\nAction Input: {{arguments}}"] + eos_slots)
-    default_tool_formatter = ToolFormatter(slots="default")
     default_separator_formatter = EmptyFormatter()
     templates[name] = template_class(
         format_user=format_user or default_user_formatter,
@@ -182,7 +147,6 @@ def register_template(
         format_system=format_system or default_user_formatter,
         format_function=format_function or default_function_formatter,
         format_observation=format_observation or format_user or default_user_formatter,
-        format_tools=format_tools or default_tool_formatter,
         format_separator=format_separator or default_separator_formatter,
         default_system=default_system,
         stop_words=stop_words,
@@ -201,7 +165,7 @@ def get_template_and_fix_tokenizer(name: str, tokenizer: "PreTrainedTokenizer") 
         tokenizer.pad_token = tokenizer.eos_token
         logger.info("Add pad token: {}".format(tokenizer.pad_token))
 
-    if name is None:  # for pre-training
+    if name is None:
         return None
 
     template = templates.get(name, None)
@@ -230,7 +194,6 @@ register_template(
     format_user=StringFormatter(slots=["<|im_start|>user\n{{content}}<|im_end|>\n<|im_start|>assistant\n"]),
     format_system=StringFormatter(slots=["<|im_start|>system\n{{content}}<|im_end|>\n"]),
     format_separator=EmptyFormatter(slots=["\n"]),
-    # default_system="You are a helpful assistant.",
     default_system="你是一个药学领域的语言专家",
     stop_words=["<|im_end|>"],
     replace_eos=True,
@@ -255,6 +218,5 @@ register_template(
     name="llama2_zh",
     format_user=StringFormatter(slots=[{"bos_token"}, "[INST] {{content}} [/INST]"]),
     format_system=StringFormatter(slots=["<<SYS>>\n{{content}}\n<</SYS>>\n\n"]),
-    # default_system="You are a helpful assistant. 你是一个乐于助人的助手。",
     default_system="你是一个药学领域的语言专家",
 )

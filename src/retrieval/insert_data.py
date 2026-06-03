@@ -34,4 +34,3 @@ if __name__ == '__main__':
     create_kb()
     insert_translation_data()
     insert_veckb()
-    print(len(question_veckb), len(question_kb))

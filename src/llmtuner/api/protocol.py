@@ -9,14 +9,6 @@ from pydantic import BaseModel
 class Role(str, Enum):
     USER = "user"
     ASSISTANT = "assistant"
-    SYSTEM = "system"
-    FUNCTION = "function"
-    TOOL = "tool"
-
-
-@unique
-class Finish(str, Enum):
-    STOP = "stop"
 
 
 class ChatMessage(BaseModel):
@@ -26,7 +18,6 @@ class ChatMessage(BaseModel):
 
 class ChatCompletionRequest(BaseModel):
     model: str = "string"
-    chat_history: List[ChatMessage] = []
     query: str
     is_zh: bool
     topk: int
@@ -40,25 +31,19 @@ class ChatCompletionRequest(BaseModel):
 class ChatCompletionTestRequest(BaseModel):
     model: str
     messages: List[ChatMessage]
-    tools: Optional[list] = []
-    do_sample: bool = True
     temperature: Optional[float] = None
     top_p: Optional[float] = None
-    n: int = 1
     max_tokens: Optional[int] = None
-    stream: bool = False
 
 
 class ChatCompletionResponseChoice(BaseModel):
     index: int
     message: str=None
-    finish_reason: Finish
 
 
 class ChatCompletionResponseStreamChoice(BaseModel):
     index: int
     message: str=None
-    finish_reason: Optional[Finish] = None
 
 
 class ChatCompletionResponse(BaseModel):

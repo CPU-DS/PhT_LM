@@ -12,8 +12,8 @@ class Client:
     def __init__(self):
         pass
 
-    def es_connect(self, api: str, auth_info: tuple):
+    def es_connect(self, es_api: str, auth_info: tuple):
         if self.__es_conn_pool is None:
-            self.__es_conn_pool = Elasticsearch(api, basic_auth=auth_info, timeout=3600,
+            self.__es_conn_pool = Elasticsearch(es_api, basic_auth=auth_info, timeout=1000,
                                                 maxsize=10)
         return self.__es_conn_pool

@@ -20,22 +20,22 @@ class KB:
 
     def __len__(self):
         """
-        获取知识库文档数量
+        获取知识库文本数量
         """
         pass
     def create_kb(self):
         """
-        创建知识库
+        创建
         """
         pass
     def delete_kb(self):
         """
-        删除知识库
+        删除
         """
         pass
     def clear_kb(self):
         """
-        清空知识库
+        清空
         """
         pass
     def get_kb_info(self):
@@ -45,12 +45,12 @@ class KB:
         pass
     def insert_bulk(self,file):
         """
-        向知识库中批量插入文档
+        批量插入文本
         """
         pass
     def insert_one(self,doc: dict):
         """
-        向知识库中插入单个文档
+        插入单个文本
         """
         pass
 
@@ -66,7 +66,7 @@ class KB:
 
 class DocKB(KB):
     """
-    创建文档知识库用于文档内容检索
+    创建文本知识库
     """
     def __init__(self,kb_name: str):
         super().__init__(kb_name)
@@ -102,9 +102,9 @@ class DocKB(KB):
         index_name = self.kb_name
         res = es.delete_by_query(index=index_name, body={"query": {"match_all": {}}})
         if res['deleted'] == 0:
-            print('No documents deleted')
+            print('知识库为空')
         else:
-            print('Deleted %d documents' % res['deleted'])
+            print('已删除知识库 %d 个中英文文本对' % res['deleted'])
 
     def get_kb_info(self):
         es = self.client
@@ -121,35 +121,34 @@ class DocKB(KB):
         es = self.client
         if es.indices.exists(index=self.kb_name) == False:
             self.create_kb()
-        docs = excel_parser(file)
+        pair_datas = excel_parser(file)
         action = ({
             '_index': self.kb_name,
-            '_source': doc
-        } for doc in docs)
+            '_source': pair_data
+        } for pair_data in pair_datas)
         helpers.bulk(es, action)
-        print(f'{len(docs)}条文档插入完成！')
+        print(f'{len(pair_datas)}条中英文数据对插入完成！')
 
     def insert_one(self,doc):
         es = self.client
         res = es.index(index=self.kb_name, body=doc)
         return res["_id"]
-        # print(f'插入成功！id为{res["_id"]}')
 
-    def query_by_id(self,id) -> dict:
+    def query_by_id(self, id) -> dict:
         es = self.client
         res = es.get(index=self.kb_name, id=id)
         return res
 
     def query_all(self,res_from=0,res_size=100000):
         es = self.client
-        res = es.search(index=self.kb_name,body={"from":res_from,"size":res_size,"query": {"match_all": {}}})
-        hits = result_transfer(res)
-        return hits
+        result = es.search(index=self.kb_name, body={"from":res_from,"size":res_size,"query": {"match_all": {}}})
+        resp = result_2_text(result)
+        return resp
 
     def query_by_dsl(self,dsl):
         es = self.client
-        res = es.search(index=self.kb_name,body=dsl)
-        resp = result_transfer(res)
+        result = es.search(index=self.kb_name, body=dsl)
+        resp = result_2_text(result)
         return resp
 
 
@@ -186,9 +185,9 @@ class ESVectorKB(KB):
         es = self.client
         res = es.delete_by_query(index=self.kb_name, body={"query": {"match_all": {}}})
         if res['deleted'] == 0:
-            print('No documents deleted')
+            print('向量库为空')
         else:
-            print('Deleted %d documents' % res['deleted'])
+            print('已删除向量库 %d 个中英文文本对' % res['deleted'])
 
     def get_kb_info(self):
         es = self.client
@@ -205,14 +204,13 @@ class ESVectorKB(KB):
         res_from = len(self)
         print(f'res_from: {res_from}')
         mapping = DocumentsEmbedding().get_embeddings(from_kb,res_from,fields)
-        cnt = 0
+        count = 0
         for map in mapping:
             id = map['_id']
             doc = {VECTOR_FIELD_NAME:map[VECTOR_FIELD_NAME], VECTOR_FIELD_NAME_EN: map[VECTOR_FIELD_NAME_EN]}
-            # doc = {VECTOR_FIELD_NAME:map[VECTOR_FIELD_NAME]}
             self.insert_one(doc,id)
-            cnt += 1
-        print(f'{cnt} 条文档向量插入完成！')
+            count += 1
+        print(f'{count} 条中英文数据向量插入完成！')
 
     def insert_one(self,doc,id):
         es = self.client
@@ -220,7 +218,6 @@ class ESVectorKB(KB):
 
     def query_by_dsl(self, dsl, from_kb:KB):
         es = self.client
-        res = es.search(index=self.kb_name, body=dsl)
-        # print(res)
-        resp = vec_result_transfer(res,from_kb)
+        result = es.search(index=self.kb_name, body=dsl)
+        resp = vec_2_text(result, from_kb)
         return resp

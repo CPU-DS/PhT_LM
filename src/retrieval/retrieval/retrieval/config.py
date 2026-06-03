@@ -1,8 +1,9 @@
+
 import torch
 
 # ======================== es cinfig =======================
 ES_API = "http://IP:9200"
-BASIC_AUTH = ("username", "password")
+BASIC_AUTH = ("elastic", "vickyotis")
 
 # ======================== create knowledge base cinfig =======================
 
@@ -14,14 +15,6 @@ MAPPINGS = {
         "en_text": {"type": "text",
                     "analyzer": "ik_smart",
                     "search_analyzer": "ik_smart_synonym"}
-    }
-}
-
-GROUP_MAPPINGS = {
-  "properties": {
-        "standard_question_id": {"type": "keyword"},
-        "similar_question_id": {"type": "keyword"},
-        "answer": {"type": "keyword"},
     }
 }
 
@@ -53,7 +46,7 @@ SETTINGS = {
       }
 }
 
-# 文档块编码为向量时需要的字段
+# 文本编码为向量时需要的字段
 DEFAUT_FIELDS_VECTORUSED = ['zh_text', 'en_text']
 # 向量库的向量字段名称
 VECTOR_FIELD_NAME = "chunk_vector"
@@ -78,10 +71,12 @@ EMBEDDING_MODLE_DICT = {
 # 嵌入模型
 EMBEDDING_MODEL = "stella_base_zh_v3_1792d"
 EMBEDDING_MODEL_EN = "mxbai-embed-large-v1"
-# Embedding running device
+
 EMBEDDING_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# ======================== query cinfig =======================
-KB_NAME = 'translation_kb'
-VEC_NAME = 'translation_veckb'
-QUERY_FIELDS = ['zh_text', 'en_text'] # 查询的字段
+KB_NAME = 'translation_kb_11_07'
+VEC_NAME = 'translation_veckb_11_07'
+# KB_NAME = 'translation_kb'
+# VEC_NAME = 'translation_veckb'
+TEXT_FIELDS = ['zh_text', 'en_text'] # 查询的字段
+
